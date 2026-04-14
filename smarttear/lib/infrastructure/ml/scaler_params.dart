@@ -25,10 +25,10 @@ class ScalerParams {
     }
 
     return ScalerParams(
-      featureMin: asDoubleList(json['feature_min']),
-      featureMax: asDoubleList(json['feature_max']),
-      clipMin: asDoubleList(json['clip_min']),
-      clipMax: asDoubleList(json['clip_max']),
+      featureMin: asDoubleList(json['featureMin']),
+      featureMax: asDoubleList(json['featureMax']),
+      clipMin: asDoubleList(json['clipMin']),
+      clipMax: asDoubleList(json['clipMax']),
     );
   }
 
