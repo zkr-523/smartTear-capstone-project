@@ -1,3 +1,7 @@
+// Freezed applies JsonKey annotations to constructor params; the analyzer warns
+// even though codegen expects this pattern.
+// ignore_for_file: invalid_annotation_target
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'data_package.freezed.dart';

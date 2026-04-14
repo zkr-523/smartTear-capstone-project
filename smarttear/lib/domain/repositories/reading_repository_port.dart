@@ -6,6 +6,7 @@ abstract class ReadingRepositoryPort {
   /// Returns a stable reference to the stored package.
   Future<String> saveRawPackage(DataPackage package);
 
-  Future<void> saveReading(Reading reading);
+  /// Persists [reading] and returns the assigned row id (for navigation, etc.).
+  Future<int> saveReading(Reading reading);
 }
 

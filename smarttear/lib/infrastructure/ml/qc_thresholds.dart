@@ -17,21 +17,14 @@ class QCThresholds {
   final double glucoseMax;
   final int schemaVersion;
 
-  static QCThresholds? _cached;
-
   static Future<QCThresholds> load() async {
-    final existing = _cached;
-    if (existing != null) return existing;
-
     final raw = await rootBundle.loadString('assets/config/qc_thresholds.json');
     final decoded = jsonDecode(raw);
     if (decoded is! Map<String, dynamic>) {
       throw StateError('qc_thresholds.json must be a JSON object');
     }
 
-    final thresholds = QCThresholds.fromJson(decoded);
-    _cached = thresholds;
-    return thresholds;
+    return QCThresholds.fromJson(decoded);
   }
 
   factory QCThresholds.fromJson(Map json) {

@@ -93,14 +93,15 @@ class DataIngestor {
       );
 
       // 7. Persist reading
+      final int readingId;
       try {
-        await repository.saveReading(reading);
+        readingId = await repository.saveReading(reading);
       } catch (_) {
         return const IngestFailure('Storage error — tap Retry', true);
       }
 
-      // 8. Return success
-      return IngestSuccess(reading);
+      // 8. Return success (include assigned id for routing)
+      return IngestSuccess(reading.copyWith(id: readingId));
     } catch (_) {
       // Never throw exceptions out of this method.
       return const IngestFailure('Processing error — tap Retry', true);
