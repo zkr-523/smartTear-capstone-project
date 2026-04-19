@@ -20,7 +20,6 @@ class InferenceException implements Exception {
 
 class TfliteAnalyteModel implements AnalyteModelPort {
   static const _manifestAssetPath = 'assets/config/model_manifest.json';
-
   static const _modelDir = 'assets/models';
 
   Future<void>? _initFuture;
@@ -108,11 +107,18 @@ class TfliteAnalyteModel implements AnalyteModelPort {
 
       final options = InterpreterOptions()..threads = 2;
 
-      _glucose = await Interpreter.fromAsset('$_modelDir/$glucoseFile', options: options);
-      _electrolytes =
-          await Interpreter.fromAsset('$_modelDir/$electrolytesFile', options: options);
-      _cholesterol =
-          await Interpreter.fromAsset('$_modelDir/$cholesterolFile', options: options);
+      _glucose = await Interpreter.fromAsset(
+        '$_modelDir/$glucoseFile',
+        options: options,
+      );
+      _electrolytes = await Interpreter.fromAsset(
+        '$_modelDir/$electrolytesFile',
+        options: options,
+      );
+      _cholesterol = await Interpreter.fromAsset(
+        '$_modelDir/$cholesterolFile',
+        options: options,
+      );
     } catch (e, st) {
       throw InferenceException(
         'Failed to load ML model — check assets/models/',

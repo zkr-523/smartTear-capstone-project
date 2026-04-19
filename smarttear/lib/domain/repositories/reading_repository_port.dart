@@ -7,5 +7,25 @@ abstract class ReadingRepositoryPort {
   Future<String> saveRawPackage(DataPackage package);
 
   Future<void> saveReading(Reading reading);
+
+  /// Load a reading using the stable reference used in routes (e.g. rawPackageRef).
+  Future<Reading?> getReadingByRef(String readingId);
+
+  /// Returns most-recent-first readings.
+  Future<List<Reading>> latestReadings({int limit = 10});
+
+  /// All readings for this user, newest first.
+  Future<List<Reading>> listReadingsForUser(String userId, {int limit = 500});
+
+  Future<void> updateReadingNote(
+    String readingRef,
+    String userId,
+    String? note,
+  );
+
+  Future<void> deleteReading(String readingRef, String userId);
+
+  /// Merge imported readings (same userId only); skips duplicates by [rawPackageRef].
+  Future<void> mergeReadings(List<Reading> readings, String userId);
 }
 

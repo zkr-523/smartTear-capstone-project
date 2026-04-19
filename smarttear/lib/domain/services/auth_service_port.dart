@@ -30,7 +30,10 @@ abstract class AuthServicePort {
   Future<AuthResult> signIn(String email, String password);
   Future<AuthResult> register(String email, String password);
   Future<void> signOut();
-  Future<void> sendPasswordResetEmail(String email);
+  /// Returns `null` on success, otherwise a user-facing error message.
+  Future<String?> sendPasswordResetEmail(String email);
+  /// Returns `null` on success, otherwise a user-facing error message.
+  Future<String?> deleteAccount();
   Stream<AuthUser?> get authStateStream;
   AuthUser? get currentUser;
 }

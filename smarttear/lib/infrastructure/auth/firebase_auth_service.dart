@@ -16,20 +16,18 @@ class FirebaseAuthService implements AuthServicePort {
   static const _currentUserIdKey = 'current_user_id';
 
   @override
-  Stream<AuthUser?> get authStateStream => _auth.authStateChanges().map((u) {
-        if (u == null) return null;
-        final email = u.email;
-        if (email == null) return null;
-        return AuthUser(uid: u.uid, email: email);
-      });
+  Stream<AuthUser?> get authStateStream =>
+      _auth.authStateChanges().map(_mapFirebaseUser);
 
   @override
-  AuthUser? get currentUser {
-    final u = _auth.currentUser;
+  AuthUser? get currentUser => _mapFirebaseUser(_auth.currentUser);
+
+  /// Firebase [User.email] can be null on some platforms (e.g. web restore).
+  /// We still treat the session as signed-in using [User.uid].
+  AuthUser? _mapFirebaseUser(User? u) {
     if (u == null) return null;
-    final email = u.email;
-    if (email == null) return null;
-    return AuthUser(uid: u.uid, email: email);
+    final email = u.email?.trim();
+    return AuthUser(uid: u.uid, email: (email != null && email.isNotEmpty) ? email : '');
   }
 
   @override
@@ -84,8 +82,30 @@ class FirebaseAuthService implements AuthServicePort {
   }
 
   @override
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+  Future<String?> deleteAccount() async {
+    try {
+      final u = _auth.currentUser;
+      if (u == null) return 'Not signed in';
+      await u.delete();
+      await _secureStorage.delete(key: _currentUserIdKey);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _mapAuthError(e.code);
+    } catch (_) {
+      return 'Could not delete account. Try again.';
+    }
+  }
+
+  @override
+  Future<String?> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _mapAuthError(e.code);
+    } catch (_) {
+      return 'Could not send reset email. Try again.';
+    }
   }
 
   String _mapAuthError(String code) {

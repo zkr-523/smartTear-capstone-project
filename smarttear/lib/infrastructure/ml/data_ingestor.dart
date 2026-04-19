@@ -54,8 +54,8 @@ class DataIngestor {
       final String rawPackageRef;
       try {
         rawPackageRef = await repository.saveRawPackage(package);
-      } catch (_) {
-        return const IngestFailure('Storage error — tap Retry', true);
+      } catch (e) {
+        return IngestFailure('Could not save raw package: $e', true);
       }
 
       // 3. Preprocess features
@@ -81,7 +81,8 @@ class DataIngestor {
         id: null,
         userId: userId,
         deviceId: package.deviceId,
-        takenAt: package.timestamp,
+        // Wall-clock when processing completes on device (matches user expectation vs. simulator clock skew).
+        takenAt: DateTime.now(),
         sampleStatus: package.sampleStatus,
         contactDurationMs: package.contactDurationMs,
         qcStatus: qc.status,
@@ -95,15 +96,15 @@ class DataIngestor {
       // 7. Persist reading
       try {
         await repository.saveReading(reading);
-      } catch (_) {
-        return const IngestFailure('Storage error — tap Retry', true);
+      } catch (e) {
+        return IngestFailure('Could not save reading: $e', true);
       }
 
       // 8. Return success
       return IngestSuccess(reading);
-    } catch (_) {
+    } catch (e) {
       // Never throw exceptions out of this method.
-      return const IngestFailure('Processing error — tap Retry', true);
+      return IngestFailure('Processing error: $e', true);
     }
   }
 }
