@@ -1,0 +1,7 @@
+{
+  "min_contact_duration_ms": 500,
+  "min_channel_variance": 0.0008,
+  "glucose_min": 0.05,
+  "glucose_max": 3.0,
+  "schema_version": 1
+}

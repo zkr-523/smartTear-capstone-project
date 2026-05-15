@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "134366064831",
+    "project_id": "smarttear-app",
+    "storage_bucket": "smarttear-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134366064831:android:5b5fb7863a9da3df0cd60a",
+        "android_client_info": {
+          "package_name": "com.example.smarttear"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "134366064831-6i8hiui7m61o7a3npgau7hbkfb8s82q8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhLCKeWSMWKn4C9QMSJMqeGcHvOrIog4s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "134366064831-6i8hiui7m61o7a3npgau7hbkfb8s82q8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

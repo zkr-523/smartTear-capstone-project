@@ -1,0 +1,37 @@
+{
+  "_comment": "Model files and scaler_params.json are produced by ml_training/step4_export_tflite.py",
+  "glucose": {
+    "file": "glucose_model_v1.tflite",
+    "version": "v1",
+    "labels": [
+      "TG"
+    ],
+    "units": [
+      "mmol/L"
+    ]
+  },
+  "electrolytes": {
+    "file": "electrolytes_model_v1.tflite",
+    "version": "v1",
+    "labels": [
+      "Na",
+      "K",
+      "Cl"
+    ],
+    "units": [
+      "mEq/L",
+      "mEq/L",
+      "mEq/L"
+    ]
+  },
+  "cholesterol": {
+    "file": "cholesterol_model_v1.tflite",
+    "version": "v1",
+    "labels": [
+      "Chol"
+    ],
+    "units": [
+      "mmol/L"
+    ]
+  }
+}

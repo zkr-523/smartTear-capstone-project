@@ -1,0 +1,11 @@
+# Python / ML
+ml_training/__pycache__/
+ml_training/.venv/
+**/__pycache__/
+
+# Local agent / IDE noise (do not commit)
+.agents/
+smarttear/.dart_tool/chrome-device/
+
+# Optional lock/metadata from local tooling
+skills-lock.json

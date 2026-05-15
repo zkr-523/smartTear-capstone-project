@@ -1,0 +1,56 @@
+{
+  "clipMin": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "clipMax": [
+    2.0178744655488514,
+    4.753354467556435,
+    3.9368381443191134,
+    4.037213886546375,
+    3.8434538292877245,
+    5.663641389444852,
+    14.865574232324983,
+    6.826988135984485
+  ],
+  "featureMin": [
+    0.0175605795742339,
+    0.5001025723597937,
+    0.3000555585886328,
+    0.4002717505738271,
+    0.200015848079689,
+    0.4501557531682029,
+    0.4801109251126438,
+    2.825993348728461e-05
+  ],
+  "featureMax": [
+    1.0,
+    0.7498859796797736,
+    0.5997148494310935,
+    0.6999153019858391,
+    0.4990201310883144,
+    0.6495954911116522,
+    0.5499647445293105,
+    0.1497917140556181
+  ],
+  "contactDurationNorm": {
+    "min_ms": 500,
+    "max_ms": 2500
+  },
+  "modelVersions": {
+    "glucose": "glucose_model_v1.tflite",
+    "electrolytes": "electrolytes_model_v1.tflite",
+    "cholesterol": "cholesterol_model_v1.tflite"
+  },
+  "sources": {
+    "glucose": "Park et al. 2024, Nature Communications \u2014 1,407 real TG measurements",
+    "electrolytes": "Calimon et al. 2024, Nernst ISE equation, 50-subject clinical data",
+    "cholesterol": "Song et al. 2022, Advanced Science \u2014 electrochemical calibration"
+  }
+}

@@ -1,0 +1,2 @@
+enum QCStatus { valid, invalid }
+
