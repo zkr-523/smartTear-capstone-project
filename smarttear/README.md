@@ -1,16 +1,13 @@
-# smarttear
+# SmartTear (Flutter app)
 
-A new Flutter project.
+Production code for the capstone Flutter client lives here.
 
-## Getting Started
+See the **[repository root README.md](../README.md)** for prerequisites, ML pipeline, simulation server, and repo layout.
 
-This project is a starting point for a Flutter application.
+See **`[PRODUCT.md](../PRODUCT.md)`** for user journey, biomarker bands, privacy, and disclaimers.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+cd smarttear
+flutter pub get
+flutter run -d chrome
+```
