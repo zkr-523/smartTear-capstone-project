@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../application/providers/auth_provider.dart';
+import '../widgets/design_system.dart';
 import 'auth_ui.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -40,70 +42,87 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     setState(() => _sent = true);
   }
 
+  void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/auth/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reset password'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Enter your email and we will send you a link to reset your password.',
-                  style: Theme.of(context).textTheme.bodyLarge,
+    return AuthScreenShell(
+      onBack: _goBack,
+      belowLogo: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 40, 28, 32),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Reset password', style: SmartTearText.headline),
+              const SizedBox(height: 4),
+              Text(
+                'Enter your email to receive a reset link',
+                style: SmartTearText.body.copyWith(
+                  color: SmartTearColors.textSecondary,
                 ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _email,
-                  enabled: !_sent,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) =>
-                      (_sending || _sent) ? null : _send(),
-                  decoration: SmartTearAuthUi.fieldDecoration(
-                    context,
-                    label: 'Email',
+              ),
+              const SizedBox(height: 32),
+              AuthLabeledField(
+                label: 'Email',
+                controller: _email,
+                enabled: !_sent,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) {
+                  if (!_sending && !_sent) _send();
+                },
+                validator: (v) {
+                  final s = v?.trim() ?? '';
+                  if (s.isEmpty) return 'Enter your email';
+                  if (!s.contains('@')) return 'Enter a valid email';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 28),
+              if (_sent)
+                Container(
+                  decoration: BoxDecoration(
+                    color: SmartTearColors.tealLight,
+                    border: Border.all(color: SmartTearColors.teal),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  validator: (v) {
-                    final s = v?.trim() ?? '';
-                    if (s.isEmpty) return 'Enter your email';
-                    if (!s.contains('@')) return 'Enter a valid email';
-                    return null;
-                  },
-                ),
-                if (_sent) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    'Check your email',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: SmartTearAuthUi.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-                const SizedBox(height: 32),
-                FilledButton(
-                  onPressed: (_sending || _sent) ? null : _send,
-                  style: SmartTearAuthUi.filledFullWidthButton(),
-                  child: _sending
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: SmartTearColors.teal,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Reset link sent!',
+                          style: SmartTearText.body.copyWith(
+                            color: SmartTearColors.teal,
+                            fontWeight: FontWeight.w600,
                           ),
-                        )
-                      : const Text('Send Reset Email'),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                TealButton(
+                  label: 'Send Reset Link',
+                  onPressed: _send,
+                  enabled: !_sending,
+                  isLoading: _sending,
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
