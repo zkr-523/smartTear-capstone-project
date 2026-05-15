@@ -22,33 +22,7 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           _SectionTitle(title: 'Device'),
-          ListTile(
-            leading: Icon(
-              conn.isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
-              color: SmartTearAuthUi.primary,
-            ),
-            title: Text(conn.deviceId),
-            subtitle: Text(
-              conn.isConnected
-                  ? 'Connected'
-                  : conn.isConnecting
-                      ? 'Connecting…'
-                      : 'Disconnected',
-            ),
-            trailing: conn.isConnected
-                ? TextButton(
-                    onPressed: () =>
-                        ref.read(simulationConnectorProvider.notifier).disconnect(),
-                    child: const Text('Disconnect'),
-                  )
-                : FilledButton(
-                    onPressed: conn.isConnecting
-                        ? null
-                        : () =>
-                            ref.read(simulationConnectorProvider.notifier).connect(),
-                    child: const Text('Connect'),
-                  ),
-          ),
+          _DeviceConnectionCard(conn: conn),
           const Divider(height: 24),
           _SectionTitle(title: 'Analysis'),
           estBg.when(
@@ -67,20 +41,13 @@ class SettingsScreen extends ConsumerWidget {
             data: (enabled) => SwitchListTile(
               title: const Text('Estimated BG'),
               subtitle: const Text(
-                'Show mapped blood-glucose estimates where available',
+                'ML model trained on real paired measurements dataset',
               ),
               value: enabled,
               onChanged: (v) => ref
                   .read(estBgSettingsNotifierProvider.notifier)
                   .setEnabled(v),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.tune, color: SmartTearAuthUi.primary),
-            title: const Text('TG → BG mapping'),
-            subtitle: const Text('Lag, scale, and offset for estimates'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/tg-bg'),
           ),
           const Divider(height: 24),
           _SectionTitle(title: 'Data'),
@@ -154,6 +121,80 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Avoids [ListTile] trailing width assertion on wide web layouts.
+class _DeviceConnectionCard extends ConsumerWidget {
+  const _DeviceConnectionCard({required this.conn});
+
+  final SimulationConnectorState conn;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = conn.isConnected
+        ? 'Connected'
+        : conn.isConnecting
+            ? 'Connecting…'
+            : 'Disconnected';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            conn.isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+            color: SmartTearAuthUi.primary,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  conn.deviceId,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  status,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (conn.isConnected)
+            OutlinedButton(
+              onPressed: () =>
+                  ref.read(simulationConnectorProvider.notifier).disconnect(),
+              style: _compactButtonStyle(isFilled: false),
+              child: const Text('Disconnect'),
+            )
+          else
+            FilledButton(
+              onPressed: conn.isConnecting
+                  ? null
+                  : () =>
+                      ref.read(simulationConnectorProvider.notifier).connect(),
+              style: _compactButtonStyle(isFilled: true),
+              child: const Text('Connect'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Theme sets [minimumSize] to infinite width; override for inline row buttons.
+ButtonStyle _compactButtonStyle({required bool isFilled}) {
+  const size = Size(0, 40);
+  const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 8);
+  return isFilled
+      ? FilledButton.styleFrom(minimumSize: size, padding: padding)
+      : OutlinedButton.styleFrom(minimumSize: size, padding: padding);
 }
 
 class _SectionTitle extends StatelessWidget {

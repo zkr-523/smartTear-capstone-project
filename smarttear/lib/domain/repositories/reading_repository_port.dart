@@ -1,4 +1,5 @@
 import '../entities/data_package.dart';
+import '../entities/chat_message_view.dart';
 import '../entities/reading.dart';
 
 abstract class ReadingRepositoryPort {
@@ -27,5 +28,21 @@ abstract class ReadingRepositoryPort {
 
   /// Merge imported readings (same userId only); skips duplicates by [rawPackageRef].
   Future<void> mergeReadings(List<Reading> readings, String userId);
+
+  /// Chat persistence. Messages are scoped by optional [readingId].
+  /// Use `readingId == null` for general chat.
+  Future<List<ChatMessageView>> loadChatMessages({
+    required String userId,
+    required int? readingId,
+    int limit = 200,
+  });
+
+  Future<void> saveChatMessage({
+    required String userId,
+    required int? readingId,
+    required String role, // "user" | "assistant"
+    required String text,
+    DateTime? createdAt,
+  });
 }
 

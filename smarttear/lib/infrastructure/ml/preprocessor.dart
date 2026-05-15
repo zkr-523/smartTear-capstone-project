@@ -38,7 +38,18 @@ class Preprocessor {
     late final bool contactDurationAvailable;
 
     if (contactDurationMs != null) {
-      contactFeature = _clamp(contactDurationMs / 3000.0, 0.0, 1.0);
+      final minMs = scaler.contactDurationMinMs.toDouble();
+      final maxMs = scaler.contactDurationMaxMs.toDouble();
+      final span = maxMs - minMs;
+      final clippedMs = span <= 0
+          ? minMs
+          : contactDurationMs.clamp(
+              scaler.contactDurationMinMs,
+              scaler.contactDurationMaxMs,
+            );
+      contactFeature = span <= 0
+          ? 0.0
+          : _clamp((clippedMs - minMs) / span, 0.0, 1.0);
       contactDurationAvailable = true;
     } else {
       contactFeature = 0.0;

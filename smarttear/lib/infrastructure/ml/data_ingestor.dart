@@ -1,3 +1,6 @@
+import 'package:collection/collection.dart';
+
+import '../../domain/entities/analyte_value.dart';
 import '../../domain/entities/data_package.dart';
 import '../../domain/entities/reading.dart';
 import '../../domain/repositories/reading_repository_port.dart';
@@ -7,6 +10,7 @@ import 'preprocessor.dart';
 import 'qc_classifier.dart';
 import 'qc_thresholds.dart';
 import 'scaler_params.dart';
+import 'tg_bg_ml_model.dart';
 
 sealed class IngestResult {
   const IngestResult();
@@ -24,7 +28,7 @@ final class IngestFailure extends IngestResult {
 }
 
 class DataIngestor {
-  const DataIngestor({
+  DataIngestor({
     required this.validator,
     required this.preprocessor,
     required this.modelPort,
@@ -32,6 +36,7 @@ class DataIngestor {
     required this.thresholds,
     required this.scaler,
     required this.repository,
+    required this.tgBgModel,
   });
 
   final PackageValidator validator;
@@ -41,8 +46,13 @@ class DataIngestor {
   final QCThresholds thresholds;
   final ScalerParams scaler;
   final ReadingRepositoryPort repository;
+  final TgBgMlModel tgBgModel;
 
-  Future<IngestResult> ingest(DataPackage package, String userId) async {
+  Future<IngestResult> ingest(
+    DataPackage package,
+    String userId, {
+    bool estBgEnabled = false,
+  }) async {
     try {
       // 1. Validate packet
       final validation = validator.validate(package, thresholds);
@@ -73,8 +83,10 @@ class DataIngestor {
         return const IngestFailure('Processing error — tap Retry', true);
       }
 
+      final enrichedAnalytes = _attachEstimatedBg(analytes, estBgEnabled);
+
       // 5. QC classify
-      final qc = qcClassifier.classify(package, analytes, thresholds);
+      final qc = qcClassifier.classify(package, enrichedAnalytes, thresholds);
 
       // 6. Build Reading object
       final reading = Reading(
@@ -89,7 +101,7 @@ class DataIngestor {
         invalidReason: qc.reason,
         modelVersion: modelPort.modelVersion,
         rawPackageRef: rawPackageRef,
-        analytes: analytes,
+        analytes: enrichedAnalytes,
         note: null,
       );
 
@@ -106,6 +118,27 @@ class DataIngestor {
       // Never throw exceptions out of this method.
       return IngestFailure('Processing error: $e', true);
     }
+  }
+
+  List<AnalyteValue> _attachEstimatedBg(
+    List<AnalyteValue> analytes,
+    bool estBgEnabled,
+  ) {
+    if (!estBgEnabled) return analytes;
+
+    final tg = analytes.firstWhereOrNull((a) => a.analyteCode == 'TG');
+    if (tg == null) return analytes;
+
+    final bgMmol = tgBgModel.estimateBG(tg.value);
+    if (bgMmol == null) return analytes;
+
+    return analytes
+        .map(
+          (a) => a.analyteCode == 'TG'
+              ? a.copyWith(estimatedBG: bgMmol)
+              : a,
+        )
+        .toList();
   }
 }
 

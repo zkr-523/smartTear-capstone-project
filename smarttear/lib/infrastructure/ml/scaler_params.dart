@@ -4,6 +4,8 @@ class ScalerParams {
     required this.featureMax,
     required this.clipMin,
     required this.clipMax,
+    this.contactDurationMinMs = 500,
+    this.contactDurationMaxMs = 2500,
   });
 
   /// Must contain exactly 8 elements.
@@ -18,10 +20,24 @@ class ScalerParams {
   /// Must contain exactly 8 elements.
   final List<double> clipMax;
 
+  /// Matches ml_training step2_preprocess contact_normalize (500–2500 ms).
+  final int contactDurationMinMs;
+  final int contactDurationMaxMs;
+
   factory ScalerParams.fromJson(Map json) {
     List<double> asDoubleList(Object? v) {
       final list = v as List<dynamic>? ?? const <dynamic>[];
       return list.map((e) => (e as num).toDouble()).toList(growable: false);
+    }
+
+    var contactMinMs = 500;
+    var contactMaxMs = 2500;
+    final contactNorm = json['contactDurationNorm'];
+    if (contactNorm is Map) {
+      final minV = contactNorm['min_ms'];
+      final maxV = contactNorm['max_ms'];
+      if (minV is num) contactMinMs = minV.toInt();
+      if (maxV is num) contactMaxMs = maxV.toInt();
     }
 
     return ScalerParams(
@@ -29,6 +45,8 @@ class ScalerParams {
       featureMax: asDoubleList(json['featureMax']),
       clipMin: asDoubleList(json['clipMin']),
       clipMax: asDoubleList(json['clipMax']),
+      contactDurationMinMs: contactMinMs,
+      contactDurationMaxMs: contactMaxMs,
     );
   }
 

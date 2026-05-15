@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'firebase_options.dart';
 import 'presentation/navigation/app_router.dart';
+import 'presentation/widgets/design_system.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,12 +22,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(goRouterProvider);
     return MaterialApp.router(
       title: 'SmartTear',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2459F6),
-        ).copyWith(primary: const Color(0xFF2459F6)),
-        useMaterial3: true,
-      ),
+      theme: SmartTearTheme.dark(),
       routerConfig: router,
     );
   }

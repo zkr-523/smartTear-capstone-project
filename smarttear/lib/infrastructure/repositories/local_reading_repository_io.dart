@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../domain/entities/chat_message_view.dart';
 import '../../domain/entities/data_package.dart';
 import '../../domain/entities/reading.dart';
 import '../../domain/repositories/reading_repository_port.dart';
@@ -13,6 +14,9 @@ class LocalReadingRepository implements ReadingRepositoryPort {
   LocalReadingRepository();
 
   final List<Reading> _readings = <Reading>[];
+  final Map<String, Map<int?, List<ChatMessageView>>> _chat =
+      <String, Map<int?, List<ChatMessageView>>>{};
+  var _chatAutoId = 1;
 
   List<Reading> get readings => List.unmodifiable(_readings);
 
@@ -38,9 +42,16 @@ class LocalReadingRepository implements ReadingRepositoryPort {
 
   @override
   Future<Reading?> getReadingByRef(String readingId) async {
+    await _ensureDiskLoadedIntoMemory();
     final inMemory =
         _readings.where((r) => r.rawPackageRef == readingId).firstOrNull;
     if (inMemory != null) return inMemory;
+
+    final asInt = int.tryParse(readingId);
+    if (asInt != null) {
+      final byId = _readings.where((r) => r.id == asInt).firstOrNull;
+      if (byId != null) return byId;
+    }
 
     try {
       final dir = await _readingsDir();
@@ -136,6 +147,42 @@ class LocalReadingRepository implements ReadingRepositoryPort {
       } catch (_) {}
     }
     _readings.sort((a, b) => b.takenAt.compareTo(a.takenAt));
+  }
+
+  @override
+  Future<List<ChatMessageView>> loadChatMessages({
+    required String userId,
+    required int? readingId,
+    int limit = 200,
+  }) async {
+    final byUser = _chat[userId];
+    if (byUser == null) return const <ChatMessageView>[];
+    final list = byUser[readingId] ?? const <ChatMessageView>[];
+    if (list.length <= limit) return List<ChatMessageView>.unmodifiable(list);
+    return List<ChatMessageView>.unmodifiable(list.sublist(list.length - limit));
+  }
+
+  @override
+  Future<void> saveChatMessage({
+    required String userId,
+    required int? readingId,
+    required String role,
+    required String text,
+    DateTime? createdAt,
+  }) async {
+    final byUser = _chat.putIfAbsent(
+      userId,
+      () => <int?, List<ChatMessageView>>{},
+    );
+    final list = byUser.putIfAbsent(readingId, () => <ChatMessageView>[]);
+    list.add(
+      ChatMessageView(
+        id: _chatAutoId++,
+        role: role,
+        text: text,
+        createdAt: createdAt ?? DateTime.now(),
+      ),
+    );
   }
 
   Future<Directory> _rawDir() async {

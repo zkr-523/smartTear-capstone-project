@@ -8,6 +8,9 @@ void main() {
     File('assets/config/scaler_params.json').readAsStringSync(),
   ) as Map<String, dynamic>;
   final s = ScalerParams.fromJson(m);
-  print('${s.featureMin.length},${s.featureMax.length},${s.clipMin.length},${s.clipMax.length}');
+  print(
+    '${s.featureMin.length},${s.featureMax.length},${s.clipMin.length},${s.clipMax.length} '
+    'contact=${s.contactDurationMinMs}-${s.contactDurationMaxMs}ms',
+  );
 }
 

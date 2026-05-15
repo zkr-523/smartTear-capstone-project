@@ -6,17 +6,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 import '../../domain/entities/analyte_value.dart';
 import '../../domain/services/analyte_model_port.dart';
-
-class InferenceException implements Exception {
-  InferenceException(this.message, {this.cause, this.stackTrace});
-
-  final String message;
-  final Object? cause;
-  final StackTrace? stackTrace;
-
-  @override
-  String toString() => message;
-}
+import 'inference_exception.dart';
 
 class TfliteAnalyteModel implements AnalyteModelPort {
   static const _manifestAssetPath = 'assets/config/model_manifest.json';
@@ -29,7 +19,8 @@ class TfliteAnalyteModel implements AnalyteModelPort {
   Interpreter? _cholesterol;
 
   @override
-  String get modelVersion => 'glucose:v1+electrolytes:v1+cholesterol:v1';
+  String get modelVersion =>
+      'glucose:v1+electrolytes:v1+cholesterol:v1 (Park2024/Calimon/Song)';
 
   @override
   Future<List<AnalyteValue>> estimate(List<double> features) async {

@@ -9,6 +9,7 @@ import '../../application/providers/auth_provider.dart';
 import '../auth/forgot_password_screen.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import '../chat/chat_screen.dart';
 import '../home/home_screen.dart';
 import '../results/results_screen.dart';
 import '../history/history_screen.dart';
@@ -16,7 +17,6 @@ import '../history/reading_detail_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/splash_screen.dart';
 import '../settings/settings_screen.dart';
-import '../settings/tg_bg_config_screen.dart';
 import '../trends/trends_screen.dart';
 import 'app_shell.dart';
 
@@ -78,8 +78,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (user == null) {
-        // Don't park on splash while logged out.
-        if (loc == '/splash') return '/auth/login';
+        // Splash shows branding then navigates to login itself (~2s).
+        if (loc == '/splash') return null;
         if (isPublicWhileLoggedOut(loc)) return null;
         return '/auth/login';
       }
@@ -153,14 +153,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/chat',
+                builder: (context, state) => const ChatScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'tg-bg',
-                    builder: (context, state) => const TgBgConfigScreen(),
-                  ),
-                ],
               ),
             ],
           ),

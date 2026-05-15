@@ -21,13 +21,7 @@ void main() {
 
   final jsonMap = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
 
-  // NOTE: scaler_params.json currently uses camelCase keys (featureMin, ...).
-  final scaler = ScalerParams(
-    featureMin: _asDoubleList(jsonMap['featureMin']),
-    featureMax: _asDoubleList(jsonMap['featureMax']),
-    clipMin: _asDoubleList(jsonMap['clipMin']),
-    clipMax: _asDoubleList(jsonMap['clipMax']),
-  );
+  final scaler = ScalerParams.fromJson(jsonMap);
 
   final packets = <Map<String, Object>>[
     {
@@ -77,7 +71,7 @@ void main() {
   final pre = Preprocessor();
 
   print('=' * 60);
-  print('DART PARITY CHECK — Compare with verify_parity.py output');
+  print('DART PARITY CHECK — feature vector must match ml_training step2');
   print('=' * 60);
 
   for (final p in packets) {

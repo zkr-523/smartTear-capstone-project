@@ -1,13 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/reading.dart';
-import '../../infrastructure/ml/tg_to_bg_mapper.dart';
+import '../../infrastructure/ml/tg_bg_ml_model_provider.dart';
 import 'auth_provider.dart';
 import 'data_ingestor_provider.dart';
 import 'est_bg_settings_notifier.dart';
-import 'tg_bg_settings_notifier.dart';
 
 enum TrendsRange { d7, d30, d90, all }
+
+/// Selected trends window. [TrendsNotifier] watches this so range changes always reload data.
+final trendsRangeProvider =
+    StateProvider<TrendsRange>((ref) => TrendsRange.d7);
 
 class TgTrendStats {
   const TgTrendStats({
@@ -50,19 +53,16 @@ final trendsNotifierProvider =
     AsyncNotifierProvider<TrendsNotifier, TrendsVm>(TrendsNotifier.new);
 
 class TrendsNotifier extends AsyncNotifier<TrendsVm> {
-  TrendsRange _range = TrendsRange.d7;
-
   @override
   Future<TrendsVm> build() async {
-    ref.watch(tgBgSettingsNotifierProvider);
+    final range = ref.watch(trendsRangeProvider);
     ref.watch(estBgSettingsNotifierProvider);
-    return _load(_range);
+    return _load(range);
   }
 
-  Future<void> setRange(TrendsRange range) async {
-    _range = range;
-    state = const AsyncLoading();
-    state = AsyncData(await _load(_range));
+  /// Updates [trendsRangeProvider]; Riverpod re-runs [build] and reloads filtered data.
+  void setRange(TrendsRange range) {
+    ref.read(trendsRangeProvider.notifier).state = range;
   }
 
   Future<TrendsVm> _load(TrendsRange range) async {
@@ -75,9 +75,11 @@ class TrendsNotifier extends AsyncNotifier<TrendsVm> {
       );
     }
 
-    final tgSettings = await ref.watch(tgBgSettingsNotifierProvider.future);
     final estBgEnabled =
         ref.watch(estBgSettingsNotifierProvider).valueOrNull ?? false;
+
+    await ref.read(tgBgMlModelReadyProvider.future);
+    final bgResolver = ref.read(estimatedBgResolverProvider);
 
     final repo = ref.read(readingRepositoryProvider);
     final all = await repo.listReadingsForUser(uid);
@@ -95,21 +97,12 @@ class TrendsNotifier extends AsyncNotifier<TrendsVm> {
     final tgReadings =
         filtered.where((r) => r.glucose != null).toList(growable: false);
 
-    const mapper = TGtoBGMapper();
     List<double>? estVals;
-    if (estBgEnabled && tgReadings.length >= 2) {
-      estVals = tgReadings
-          .map(
-            (r) => mapper.mapWithLag(
-              r.glucose!.value,
-              r.takenAt,
-              filtered,
-              lagSeconds: tgSettings.lagSeconds,
-              scale: tgSettings.scale,
-              offset: tgSettings.offset,
-            ),
-          )
-          .toList(growable: false);
+    if (estBgEnabled && tgReadings.isNotEmpty) {
+      final parallel = bgResolver.parallelTo(tgReadings);
+      if (parallel.every((v) => v != null)) {
+        estVals = parallel.cast<double>().toList(growable: false);
+      }
     }
 
     TgTrendStats? stats;
