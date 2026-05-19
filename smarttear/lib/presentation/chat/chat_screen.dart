@@ -69,10 +69,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   int _readingKey(Reading r) => r.id ?? (r.rawPackageRef.hashCode & 0x7fffffff);
 
   Future<void> _refreshRecentReadings() async {
+    final uid = ref.read(authServiceProvider).currentUser?.uid;
+    if (uid == null) {
+      if (!mounted) return;
+      setState(() => _recentReadings = const <Reading>[]);
+      return;
+    }
     final repo = ref.read(readingRepositoryProvider);
-    final list = await repo.latestReadings(limit: 12);
+    final all = await repo.listReadingsForUser(uid);
     if (!mounted) return;
-    setState(() => _recentReadings = List<Reading>.from(list));
+    setState(() => _recentReadings = all.take(12).toList(growable: false));
   }
 
   Future<void> _loadMessages() async {

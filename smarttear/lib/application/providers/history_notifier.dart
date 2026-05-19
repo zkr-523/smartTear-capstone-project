@@ -35,7 +35,7 @@ class HistoryNotifier extends AsyncNotifier<HistoryVm> {
   }
 
   Future<HistoryVm> _load(HistoryFilter filter) async {
-    final uid = ref.watch(authServiceProvider).currentUser?.uid;
+    final uid = ref.watch(authStateProvider).valueOrNull?.uid;
     if (uid == null) {
       return HistoryVm(filter: filter, groups: const []);
     }

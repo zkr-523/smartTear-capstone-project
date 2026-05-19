@@ -12,12 +12,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timezone
-from typing import List, Optional
 import random
 import numpy as np
 import os
-import httpx
-import re
 
 app = FastAPI(title="SmartTear Simulation Server")
 
@@ -47,57 +44,9 @@ CHANNEL_RANGES = [
 ]
 NOISE_STD = 0.02
 
-# Compact facts for chat only — keeps replies short (full app copy lives in Flutter).
-CHAT_KNOWLEDGE = """
-SmartTear: tear biosensor capstone; ML runs on-device (TFLite).
-TG (tear glucose) normal 0.30–0.85 mmol/L on-device. Na 120–165, K 20–42, Cl 106–136 mEq/L. Chol 0.5–3.0 mmol/L.
-ESTIMATED BLOOD GLUCOSE: neural network trained on 208 real paired tear glucose and blood glucose
-measurements from Park et al. 2024 (Nature Communications). Polynomial input from tear glucose;
-R² about 0.82 for human subjects. Statistical estimate only, not a clinical measurement.
-Normal blood glucose: 3.9 to 7.8 mmol/L (70 to 140 mg/dL).
-QC invalid: short contact (<500ms), weak signal, or out-of-range values — suggest retake.
-Not a medical diagnosis; estimates only.
-"""
-
 
 class PairRequest(BaseModel):
     device_id: str
-
-
-class AnalyteData(BaseModel):
-    code: str
-    value: float
-    unit: str
-    estimatedBG: Optional[float] = None
-
-
-class ReadingContext(BaseModel):
-    readingId: int
-    takenAt: str
-    qcStatus: str
-    invalidReason: Optional[str] = None
-    analytes: List[AnalyteData]
-    contactDurationMs: Optional[int] = None
-
-
-class HistorySummary(BaseModel):
-    totalReadings: int
-    validReadings: int
-    avgGlucose: Optional[float] = None
-    lastReadingAt: Optional[str] = None
-
-
-class ConversationTurn(BaseModel):
-    role: str
-    content: str
-
-
-class ChatRequest(BaseModel):
-    message: str
-    systemPrompt: Optional[str] = None
-    currentReading: Optional[ReadingContext] = None
-    history: Optional[HistorySummary] = None
-    conversationHistory: Optional[List[ConversationTurn]] = None
 
 
 def _sample_tg_ch0_proxy() -> float:
@@ -124,42 +73,6 @@ def generate_channels() -> list:
         clamped = round(float(np.clip(noisy, 0.0, 1.0)), 4)
         channels.append(clamped)
     return channels
-
-
-MAX_CHAT_SENTENCES = 3
-MAX_CHAT_CHARS = 400
-
-
-def force_short(text: str, max_sentences: int = MAX_CHAT_SENTENCES) -> str:
-    """Strip markdown and cap length without cutting mid-sentence or decimals."""
-    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.+?)\*", r"\1", text)
-    text = re.sub(r"#{1,6}\s+", "", text)
-    text = re.sub(r"^\s*[-•*]\s+", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^\s*\d+\.\s+", "", text, flags=re.MULTILINE)
-    text = re.sub(r"\n{2,}", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-
-    # Do not split on decimals (e.g. 0.9 mmol/L)
-    parts = re.split(r"(?<=[.!?])(?<!\d)\s+", text)
-    parts = [p.strip() for p in parts if p.strip()]
-
-    if len(parts) > max_sentences:
-        parts = parts[:max_sentences]
-
-    out = " ".join(parts)
-    if len(out) > MAX_CHAT_CHARS:
-        kept = []
-        for p in parts:
-            candidate = " ".join(kept + [p])
-            if len(candidate) > MAX_CHAT_CHARS:
-                break
-            kept.append(p)
-        out = " ".join(kept) if kept else out[:MAX_CHAT_CHARS].rsplit(" ", 1)[0].strip()
-
-    if out and out[-1] not in ".?!":
-        out += "."
-    return out
 
 
 @app.post("/pair")
@@ -208,117 +121,6 @@ def get_status():
         "device_id": state["device_id"] or "SIM-001",
         "last_reading": state["last_reading_time"],
     }
-
-
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-
-    if not api_key:
-        return {"response": "Assistant unavailable. API key not configured."}
-
-    reading_ctx = "No reading selected."
-    if request.currentReading:
-        r = request.currentReading
-        valid_analytes = [a for a in r.analytes if a.value is not None]
-        if valid_analytes:
-            analyte_lines = ", ".join(
-                f"{a.code} {a.value:.2f} {a.unit}"
-                + (f" Est BG {a.estimatedBG:.1f}" if a.estimatedBG else "")
-                for a in valid_analytes
-            )
-        else:
-            analyte_lines = "no analyte values available"
-
-        status_line = r.qcStatus.upper()
-        if r.invalidReason:
-            status_line += f" reason {r.invalidReason}"
-
-        reading_ctx = (
-            f"Reading taken at {r.takenAt}. "
-            f"Status {status_line}. "
-            f"Values: {analyte_lines}."
-            + (f" Contact {r.contactDurationMs}ms." if r.contactDurationMs else "")
-        )
-
-    history_ctx = "No history yet."
-    if request.history:
-        h = request.history
-        avg = f"{h.avgGlucose:.2f} mmol/L" if h.avgGlucose else "unknown"
-        history_ctx = (
-            f"User has {h.totalReadings} readings, "
-            f"{h.validReadings} valid, "
-            f"avg glucose {avg}."
-        )
-
-    client_addendum = (request.systemPrompt or "").strip()
-
-    system_prompt = f"""You are ZKR, the SmartTear in-app assistant.
-
-LENGTH:
-At most {MAX_CHAT_SENTENCES} complete sentences, under {MAX_CHAT_CHARS} characters total.
-Plain text only — no markdown, bullets, or lists.
-Always include the analyte name AND the numeric value with units (e.g. TG 0.9 mmol/L).
-Never write "is ." or leave a value blank — finish every thought.
-Sound like a helpful text message, not an essay.
-
-CONVERSATION:
-Use READING and the message history for context and follow-ups.
-Do not re-introduce yourself every turn.
-If useful, end with one short follow-up question (still within 2 sentences).
-
-FACTS:
-{CHAT_KNOWLEDGE}
-
-READING:
-{reading_ctx}
-
-HISTORY:
-{history_ctx}
-"""
-
-    if client_addendum:
-        system_prompt += (
-            f"\nAPP (length limits above still win):\n{client_addendum}\n"
-        )
-
-    system_prompt += """
-EXAMPLES:
-hi → Hey! Attach a reading with the book icon, or ask me about your last result.
-what does TG 0.38 mean → Your tear glucose (TG) is 0.38 mmol/L, in the normal 0.30–0.85 band. Want to compare it to your trend?
-which analyte is most affected → Tear glucose (TG) at 0.9 mmol/L is high versus the 0.30–0.85 band. Sodium and cholesterol look OK on this reading.
-why invalid → Contact was likely too short or the signal weak — try a longer hold and blink first. Retake?"""
-
-    messages = []
-    if request.conversationHistory:
-        for turn in request.conversationHistory[-6:]:
-            role = "user" if turn.role == "user" else "model"
-            messages.append({"role": role, "parts": [{"text": turn.content}]})
-
-    messages.append({"role": "user", "parts": [{"text": request.message}]})
-
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-                json={
-                    "system_instruction": {"parts": [{"text": system_prompt}]},
-                    "contents": messages,
-                    "generationConfig": {
-                        "maxOutputTokens": 180,
-                        "temperature": 0.45,
-                    },
-                },
-                timeout=15.0,
-            )
-            data = response.json()
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            final = force_short(raw_text)
-            return {"response": final}
-
-    except Exception as e:
-        print(f"Chat error: {e}")
-        return {"response": "Having trouble connecting. Please try again."}
 
 
 if __name__ == "__main__":

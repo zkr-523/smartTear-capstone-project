@@ -1,6 +1,9 @@
-import 'package:collection/collection.dart';
-import 'package:dio/dio.dart';
+import 'dart:developer' as developer;
 
+import 'package:dio/dio.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import '../../core/constants/api_constants.dart';
 import '../../domain/entities/conversation_turn.dart';
 import '../../domain/entities/reading.dart';
 import 'chat_response_processor.dart';
@@ -19,31 +22,36 @@ class AssistantResponse {
   final NavigationCommand? navigationCommand;
 }
 
-/// Sent to Replit /chat — must stay aligned with server length limits.
-const String _chatBehaviorSystemPromptAddendum = '''
-You are ZKR in SmartTear. Reply in 2–3 complete sentences (under 400 characters).
-Every answer must name the analyte and give the actual number with units (e.g. TG 0.9 mmol/L).
-Never leave a blank after "is" or "are" — if you mention a value, write the full value.
-Be direct and human, like texting a knowledgeable friend.
-Use TG, Na, K, Cl, Chol and QC from the reading. Use conversation history for follow-ups.
-No markdown, bullets, or "As an AI". Not a diagnosis.''';
+const String _kFallbackText =
+    'I can help with your readings, history, and trends. Try: Explain my result, Show last 3 readings.';
+
+const String _kSystemPrompt =
+    'You are ZKR, the SmartTear assistant. In SmartTear, "TG" means tear glucose (not triglycerides); the other analyte codes are Na (sodium), K (potassium), Cl (chloride), and Chol (cholesterol). Be a friendly conversational assistant first and a tear-biomarker specialist second. Answer any question — greetings, the day of the week, small talk, unrelated questions — and gently bring the conversation back to the user\'s tear readings when relevant. Never give a medical diagnosis. Always suggest consulting a doctor for medical concerns. Keep every reply under 3 complete sentences. Use plain text — no markdown, no bullets, no headers. Answer only using the SmartTear knowledge below and the user\'s reading data. If the answer is not covered by either, say you do not have that information in the app. Do not fill gaps from outside knowledge.';
+
+const Map<String, String> _kAnalyteDisplayNames = <String, String>{
+  'TG': 'Tear glucose',
+  'Na': 'Sodium',
+  'K': 'Potassium',
+  'Cl': 'Chloride',
+  'Chol': 'Cholesterol',
+};
+
+const String _kKnowledgeAssetPath = 'assets/chat/knowledge.md';
+const String _kKnowledgeDelimiter = '=== SmartTear knowledge ===';
 
 class ChatAssistantService {
-  ChatAssistantService({
-    Dio? dio,
-    String baseUrl = 'https://smart-tear-simulation--zkrST.replit.app',
-  }) : _dio = dio ??
+  ChatAssistantService({Dio? dio})
+      : _dio = dio ??
             Dio(
               BaseOptions(
-                connectTimeout: const Duration(seconds: 20),
-                receiveTimeout: const Duration(seconds: 25),
-                sendTimeout: const Duration(seconds: 20),
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 10),
+                sendTimeout: const Duration(seconds: 10),
               ),
-            ),
-        _baseUrl = baseUrl;
+            );
 
   final Dio _dio;
-  final String _baseUrl;
+  String? _knowledge;
 
   Future<AssistantResponse> respond(
     String message,
@@ -58,129 +66,117 @@ class ChatAssistantService {
         navigationCommand: NavigationCommand.openHistory,
       );
     }
-    if (lower.contains('open trends')) {
+    if (lower.contains('open trends') ||
+        lower.contains('show trends') ||
+        lower.contains('show graph')) {
       return const AssistantResponse(
         text: 'Opening your trends.',
         navigationCommand: NavigationCommand.openTrends,
       );
     }
 
-    final turns = _historyTurnsPayload(message, conversationHistory);
-    final body = <String, dynamic>{
-      'message': message,
-      'systemPrompt': _chatBehaviorSystemPromptAddendum,
-      'currentReading': currentReading == null ? null : _readingPayload(currentReading),
-      'history': _historyPayload(recentReadings),
-      if (turns.isNotEmpty) 'conversationHistory': turns,
-    };
+    if (kAnthropicApiKey.isEmpty) {
+      return const AssistantResponse(text: _kFallbackText);
+    }
 
     try {
+      final knowledge = await _loadKnowledge();
+      final readingContext = _buildReadingContext(currentReading, recentReadings);
+      final knowledgeBit =
+          knowledge.isEmpty ? '' : '\n\n$_kKnowledgeDelimiter\n$knowledge';
+      final system = '$_kSystemPrompt\n\n$readingContext$knowledgeBit';
+      final messages = _buildMessages(message, conversationHistory);
+
       final resp = await _dio.post<Object>(
-        '$_baseUrl/chat',
-        data: body,
+        kAnthropicEndpoint,
+        data: <String, dynamic>{
+          'model': kAnthropicModel,
+          'max_tokens': kAnthropicMaxTokens,
+          'system': system,
+          'messages': messages,
+        },
+        options: Options(
+          headers: <String, String>{
+            'x-api-key': kAnthropicApiKey,
+            'anthropic-version': kAnthropicVersion,
+            'anthropic-dangerous-direct-browser-access': 'true',
+            'content-type': 'application/json',
+          },
+        ),
       );
 
       final data = resp.data;
       final Map<String, dynamic> map = switch (data) {
         final Map<String, dynamic> m => m,
         final Map m => Map<String, dynamic>.from(m),
-        _ => throw StateError('Unexpected response shape from /chat'),
+        _ => throw StateError('Unexpected response shape'),
       };
 
-      final text = map['response'];
+      final content = map['content'];
+      if (content is! List || content.isEmpty) {
+        throw StateError('Missing "content" array');
+      }
+      final first = content.first;
+      final Map<String, dynamic> block = switch (first) {
+        final Map<String, dynamic> m => m,
+        final Map m => Map<String, dynamic>.from(m),
+        _ => throw StateError('Unexpected content block shape'),
+      };
+      final text = block['text'];
       if (text is! String || text.trim().isEmpty) {
-        throw StateError('Missing "response" field');
+        throw StateError('Missing "text" field');
       }
 
-      return AssistantResponse(
-        text: _finalizeReply(message, currentReading, text),
-      );
-    } on DioException {
-      final fallback = localReadingFallback(message, currentReading);
-      if (fallback != null) {
-        return AssistantResponse(text: fallback);
-      }
-      return const AssistantResponse(
-        text: 'Having trouble connecting right now. Please try again.',
-      );
+      final cleaned = enforceShortResponse(cleanResponse(text));
+      return AssistantResponse(text: cleaned);
     } catch (_) {
-      final fallback = localReadingFallback(message, currentReading);
-      if (fallback != null) {
-        return AssistantResponse(text: fallback);
-      }
-      return const AssistantResponse(
-        text: 'Having trouble connecting right now. Please try again.',
+      return const AssistantResponse(text: _kFallbackText);
+    }
+  }
+
+  Future<String> _loadKnowledge() async {
+    final cached = _knowledge;
+    if (cached != null) return cached;
+    try {
+      final loaded = await rootBundle.loadString(_kKnowledgeAssetPath);
+      _knowledge = loaded;
+      return loaded;
+    } catch (e) {
+      developer.log(
+        'Failed to load SmartTear knowledge asset: $e',
+        name: 'ChatAssistantService',
       );
+      _knowledge = '';
+      return '';
     }
   }
 
-  String _finalizeReply(String message, Reading? reading, String raw) {
-    final cleaned = cleanResponse(raw);
-    var out = enforceShortResponse(cleaned);
-    if (chatReplyLooksBroken(out)) {
-      final local = localReadingFallback(message, reading);
-      if (local != null) {
-        out = local;
+  String _buildReadingContext(Reading? r, List<Reading> recent) {
+    if (r == null) return 'No reading currently selected.';
+    final statusStr = r.isValid ? 'valid' : 'invalid';
+    final lines = <String>[
+      '${recent.length} readings total. Latest ${r.takenAt.toIso8601String()}: status $statusStr.',
+    ];
+    if (!r.isValid && (r.invalidReason ?? '').isNotEmpty) {
+      lines.add('Reason: ${r.invalidReason}');
+    }
+    for (final a in r.analytes) {
+      final v = a.value;
+      if (v.isNaN || v.isInfinite) continue;
+      final name = _kAnalyteDisplayNames[a.analyteCode] ?? a.analyteCode;
+      lines.add('$name (${a.analyteCode}): ${v.toStringAsFixed(1)} ${a.unit}');
+      final estBg = a.estimatedBG;
+      if (a.analyteCode == 'TG' &&
+          estBg != null &&
+          !estBg.isNaN &&
+          !estBg.isInfinite) {
+        lines.add('Estimated blood glucose (BG): ${estBg.toStringAsFixed(1)} mmol/L');
       }
     }
-    return out;
+    return lines.join('\n');
   }
 
-  Map<String, dynamic> _readingPayload(Reading r) {
-    final analytes = r.analytes
-        .where((a) {
-          final v = a.value;
-          if (v.isNaN || v.isInfinite) return false;
-          return true;
-        })
-        .map(
-          (a) => <String, dynamic>{
-            'code': a.analyteCode,
-            'value': a.value.toDouble(),
-            'unit': a.unit,
-            if (a.estimatedBG != null) 'estimatedBG': a.estimatedBG,
-          },
-        )
-        .toList(growable: false);
-
-    return <String, dynamic>{
-      'readingId': r.id ?? 0,
-      'takenAt': r.takenAt.toIso8601String(),
-      'qcStatus': r.qcStatus.name,
-      'invalidReason': r.invalidReason,
-      'analytes': analytes,
-      'contactDurationMs': r.contactDurationMs,
-    };
-  }
-
-  Map<String, dynamic> _historyPayload(List<Reading> recentReadings) {
-    final valid = recentReadings.where((r) => r.isValid).toList(growable: false);
-
-    double? avgGlucose;
-    if (valid.isNotEmpty) {
-      final values = <double>[];
-      for (final r in valid) {
-        final g = r.glucose;
-        if (g != null) values.add(g.value);
-      }
-      if (values.isNotEmpty) {
-        avgGlucose = values.reduce((a, b) => a + b) / values.length;
-      }
-    }
-
-    final lastReadingAt = recentReadings.isNotEmpty
-        ? recentReadings.first.takenAt.toIso8601String()
-        : null;
-
-    return <String, dynamic>{
-      'totalReadings': recentReadings.length,
-      'validReadings': valid.length,
-      'avgGlucose': avgGlucose,
-      'lastReadingAt': lastReadingAt,
-    };
-  }
-
-  List<Map<String, dynamic>> _historyTurnsPayload(
+  List<Map<String, String>> _buildMessages(
     String currentMessage,
     List<ConversationTurn> history,
   ) {
@@ -195,22 +191,16 @@ class ChatAssistantService {
       }
     }
 
-    final last6 =
-        turns.length <= 6 ? turns : turns.sublist(turns.length - 6);
+    final last6 = turns.length <= 6 ? turns : turns.sublist(turns.length - 6);
 
-    final out = <Map<String, dynamic>>[];
+    final out = <Map<String, String>>[];
     for (final t in last6) {
-      final role = _apiChatRole(t.role);
+      final role = t.role.toLowerCase().trim() == 'user' ? 'user' : 'assistant';
       final plain = cleanResponse(t.content);
       if (plain.isEmpty) continue;
-      out.add(<String, dynamic>{'role': role, 'content': plain});
+      out.add(<String, String>{'role': role, 'content': plain});
     }
+    out.add(<String, String>{'role': 'user', 'content': currentMessage});
     return out;
-  }
-
-  static String _apiChatRole(String role) {
-    final r = role.toLowerCase().trim();
-    if (r == 'user') return 'user';
-    return 'model';
   }
 }

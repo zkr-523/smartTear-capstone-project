@@ -66,7 +66,7 @@ class TrendsNotifier extends AsyncNotifier<TrendsVm> {
   }
 
   Future<TrendsVm> _load(TrendsRange range) async {
-    final uid = ref.watch(authServiceProvider).currentUser?.uid;
+    final uid = ref.watch(authStateProvider).valueOrNull?.uid;
     if (uid == null) {
       return TrendsVm(
         range: range,
