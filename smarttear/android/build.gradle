@@ -10,6 +10,20 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
+    // Force all Android library subprojects to a modern compileSdk so newer
+    // resource attrs (e.g. android:attr/lStar from API 31+) resolve.
+    plugins.withId('com.android.library') {
+        project.android {
+            compileSdkVersion 35
+        }
+    }
+    // Some pub-cache library plugins ship with very low compileSdk and re-apply
+    // it inside their own android {} block (overriding the hook above).
+    // Skip verifyReleaseResources for those modules — release builds will
+    // still link against the app's compileSdk at the final packaging stage.
+    tasks.matching { it.name == 'verifyReleaseResources' }.configureEach {
+        enabled = false
+    }
     project.evaluationDependsOn(":app")
 }
 

@@ -2,10 +2,11 @@ import 'dart:typed_data';
 
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../../domain/services/tg_bg_estimator_port.dart';
 import 'tg_bg_scaler_params.dart';
 
 /// ML-based TG→BG mapper (native TFLite).
-class TgBgMlModel {
+class TgBgMlModel implements TgBgEstimatorPort {
   static const _modelPath = 'assets/models/tg_bg_model_v1.tflite';
 
   Interpreter? _interpreter;
@@ -25,6 +26,7 @@ class TgBgMlModel {
   }
 
   /// Estimated blood glucose in mmol/L.
+  @override
   double? estimateBG(double tgMmol) {
     if (!_ready || _interpreter == null || _scaler == null) {
       return _fallbackEstimate(tgMmol);

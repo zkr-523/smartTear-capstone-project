@@ -1,0 +1,13 @@
+00:00 +0: loading C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/perf/db_growth_bench.dart
+00:00 +0: db growth: 100 readings
+=== DB growth benchmark ===
+db_file: C:\Users\momex\AppData\Local\Temp\perf_db_6cebe701\smarttear.db
+seed_reading_id: 1
+readings_inserted: 100
+analytes_per_reading: 5
+baseline_bytes: 61440
+after_100_bytes: 86016
+delta_bytes: 24576
+delta_kb: 24.00
+delta_per_reading_bytes: 245.76
+00:01 +1: All tests passed!

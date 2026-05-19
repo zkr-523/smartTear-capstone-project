@@ -1,0 +1,36 @@
+=== Endpoint latency benchmark ===
+iterations_per_endpoint: 500
+warmup_per_endpoint: 50
+
+GET /reading
+  iterations: 500
+  warmup: 50
+  p50_ms: 3.0852
+  p95_ms: 3.4717
+  max_ms: 40.2024
+  mean_ms: 3.2489
+
+GET /status
+  iterations: 500
+  warmup: 50
+  p50_ms: 2.8973
+  p95_ms: 3.2665
+  max_ms: 18.9339
+  mean_ms: 2.9546
+
+POST /pair
+  iterations: 500
+  warmup: 50
+  p50_ms: 2.9783
+  p95_ms: 3.4466
+  max_ms: 11.1685
+  mean_ms: 3.0288
+
+POST /chat (no API key)
+  iterations: 500
+  warmup: 50
+  p50_ms: 2.4368
+  p95_ms: 3.0201
+  max_ms: 4.3237
+  mean_ms: 2.4977
+

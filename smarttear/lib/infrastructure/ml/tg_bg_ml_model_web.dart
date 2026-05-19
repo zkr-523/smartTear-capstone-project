@@ -3,10 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:tflite_web/tflite_web.dart';
 
+import '../../domain/services/tg_bg_estimator_port.dart';
 import 'tg_bg_scaler_params.dart';
 
 /// ML-based TG→BG mapper (TFLite Web / TensorFlow.js).
-class TgBgMlModel {
+class TgBgMlModel implements TgBgEstimatorPort {
   static const _modelPath = 'assets/models/tg_bg_model_v1.tflite';
 
   TFLiteModel? _model;
@@ -36,6 +37,7 @@ class TgBgMlModel {
     }
   }
 
+  @override
   double? estimateBG(double tgMmol) {
     if (!_ready || _model == null || _scaler == null) {
       return _fallbackEstimate(tgMmol);

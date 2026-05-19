@@ -1,8 +1,3 @@
-# SmartTear Simulation Server + AI Chat Assistant
-#
-# Deploy this file as main.py on Replit (smart-tear-simulation).
-# Flutter: SimulationConnector + ChatAssistantService use the same base URL.
-#
 # Channel Map (matches ml_training step1 + Flutter rawChannels[0..7]):
 #   channel[0] — tear_glucose proxy     (0.06 – 0.90)
 #   channel[1] — sodium proxy           (0.5 – 0.75)

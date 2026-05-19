@@ -1,0 +1,22 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.3, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\momex\OneDrive\Desktop\Capstone\smartTear-capstone-project\simulation_server
+plugins: anyio-4.13.0
+collecting ... collected 13 items
+
+tests/test_simulation_server.py::test_sim_001_pair_updates_state_and_echoes_device_id PASSED [  7%]
+tests/test_simulation_server.py::test_sim_002_pair_without_device_id_returns_422 PASSED [ 15%]
+tests/test_simulation_server.py::test_sim_003_reading_has_all_documented_fields PASSED [ 23%]
+tests/test_simulation_server.py::test_sim_004_raw_channels_is_eight_floats_in_0_1 PASSED [ 30%]
+tests/test_simulation_server.py::test_sim_005_schema_version_is_1 PASSED [ 38%]
+tests/test_simulation_server.py::test_sim_006_sample_status_always_in_known_set PASSED [ 46%]
+tests/test_simulation_server.py::test_sim_007_short_contact_appears_in_200_reads PASSED [ 53%]
+tests/test_simulation_server.py::test_sim_008_status_reflects_pair_state PASSED [ 61%]
+tests/test_simulation_server.py::test_sim_009_chat_without_api_key_returns_literal_fallback PASSED [ 69%]
+tests/test_simulation_server.py::test_sim_010_chat_with_gemini_error_returns_connection_trouble PASSED [ 76%]
+tests/test_simulation_server.py::test_sim_011_chat_with_reading_context_passes_to_gemini PASSED [ 84%]
+tests/test_simulation_server.py::test_sim_012_generate_channels_respects_bands_with_tolerance PASSED [ 92%]
+tests/test_simulation_server.py::test_sim_013_force_short_caps_sentences_and_strips_bold PASSED [100%]
+
+============================= 13 passed in 1.99s ==============================

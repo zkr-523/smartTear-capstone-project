@@ -1,11 +1,11 @@
 import '../../domain/entities/reading.dart';
-import 'tg_bg_ml_model.dart';
+import '../../domain/services/tg_bg_estimator_port.dart';
 
 /// Resolves estimated blood glucose (mmol/L) from stored value or ML model.
 class EstimatedBgResolver {
   EstimatedBgResolver(this._model);
 
-  final TgBgMlModel _model;
+  final TgBgEstimatorPort _model;
 
   double? forReading(Reading reading) {
     final glucose = reading.glucose;

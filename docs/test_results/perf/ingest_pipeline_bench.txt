@@ -1,0 +1,21 @@
+00:00 +0: loading C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/perf/ingest_pipeline_bench.dart
+00:00 +0: ingest pipeline benchmark
+=== Ingest pipeline benchmark ===
+iterations_total: 1000
+warmup: 100
+counted: 900
+
+-- End-to-end latency (ms) --
+min: 0.0510
+p50: 0.0660
+p95: 0.1260
+p99: 0.1920
+max: 0.6890
+mean: 0.0726
+
+-- Per-stage latency (ms, p50 / p95) --
+validate: 0.0000 / 0.0000
+preprocess: 0.0000 / 0.0000
+model.estimate (fake): 0.0080 / 0.0130
+qc.classify: 0.0020 / 0.0050
+00:00 +1: All tests passed!

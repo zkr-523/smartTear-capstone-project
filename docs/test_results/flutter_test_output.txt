@@ -1,0 +1,59 @@
+00:00 +0: loading C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/chat_response_processor_test.dart
+00:00 +0: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/chat_response_processor_test.dart: splitChatSentences keeps decimal values intact
+00:00 +1: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/chat_response_processor_test.dart: enforceShortResponse does not leave "is ." fragments
+00:00 +2: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/chat_response_processor_test.dart: chatReplyLooksBroken detects empty analyte slot
+00:00 +3: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/chat_response_processor_test.dart: cleanResponse preserves numbers instead of dollar-one placeholders
+00:00 +4: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-005: enforceShortResponse with maxSentences=2 keeps exactly two sentences
+00:00 +5: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-006: empty input returns empty
+00:00 +6: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-007: bold markdown is stripped, numeric values preserved
+00:00 +7: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-008: localReadingFallback("hello", null) returns null
+00:00 +8: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-009: TG question returns the numeric TG value
+00:00 +9: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-010: "why invalid" returns reply echoing stored invalidReason
+00:00 +10: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/chat_response_processor_extras_test.dart: CHAT-011: summary question lists Valid/Invalid and TG band label
+00:00 +11: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-001: happy path returns IngestSuccess with persisted reading
+00:00 +12: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-002: rawChannels length != 8 returns IngestFailure (non-retryable)
+00:00 +13: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-003: saveRawPackage throws → IngestFailure(retryable), no reading save
+00:00 +14: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-004: model estimate throws → IngestFailure(retryable), raw save happened first
+00:00 +15: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-005: saveReading throws → IngestFailure(retryable)
+00:00 +16: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-006: QC invalid still produces IngestSuccess and the invalid reading is persisted
+00:00 +17: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-007: estBgEnabled=true and model returns 7.5 → TG analyte has estimatedBG=7.5
+00:00 +18: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-008: estBgEnabled=false → TG analyte estimatedBG is null
+00:00 +19: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-009: estBgEnabled=true and model returns null → analytes unchanged
+00:00 +20: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/data_ingestor_test.dart: ING-010: validation failure (sampleStatus="failed") happens before raw write-ahead
+00:00 +21: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/estimated_bg_resolver_test.dart: BGR-001: returns stored estimatedBG when present
+00:00 +22: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/estimated_bg_resolver_test.dart: BGR-002: falls back to model when stored is null
+00:00 +23: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/estimated_bg_resolver_test.dart: BGR-003: returns null when reading has no TG analyte
+00:00 +24: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/estimated_bg_resolver_test.dart: BGR-004: parallelTo preserves length and null slots
+00:00 +25: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/estimated_bg_resolver_test.dart: BGR-005: forReadings drops null entries
+00:01 +26: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/package_validator_test.dart: Rule 1: fails when rawChannels length != 8
+00:01 +27: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/package_validator_test.dart: Rule 2: fails when sampleStatus == "failed"
+00:01 +28: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/package_validator_test.dart: Rule 3: fails when any channel value out of range
+00:01 +29: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/package_validator_test.dart: Rule 4: fails when deviceId is empty
+00:01 +30: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/package_validator_test.dart: Rule 5: fails when schemaVersion mismatches thresholds
+00:01 +31: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-001: output length is 9 (8 channels + 1 contact)
+00:01 +32: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-002: midpoint values map to 0.5 with a [0,1] scaler
+00:01 +33: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-003: value at featureMin maps to 0.0
+00:01 +34: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-004: value at featureMax maps to 1.0
+00:01 +35: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-005: value above clipMax is clipped then normalizes to 1.0
+00:01 +36: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-006: value below clipMin is clipped then normalizes to 0.0
+00:01 +37: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-007: normalized output is clamped into [0, 1]
+00:01 +38: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-008: degenerate featureMin == featureMax returns 0 (no divide by zero)
+00:01 +39: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-009: contact 500 ms maps to 0.0 with default 500-2500 span
+00:01 +40: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-010: contact 2500 ms maps to 1.0
+00:01 +41: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-011: contact 1500 ms maps to 0.5
+00:01 +42: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-012: contact below minMs is clamped to 0.0
+00:01 +43: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-013: contact above maxMs is clamped to 1.0
+00:01 +44: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/preprocessor_test.dart: PRE-014: missing contact duration sets feature 0 and contactDurationAvailable = false
+00:01 +45: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-001: valid when all rules pass
+00:01 +46: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-002: short contact duration triggers invalid with "Contact time too short"
+00:01 +47: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-003: contact equal to threshold passes
+00:01 +48: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-004: low variance on channels 0..4 triggers invalid with "Weak signal"
+00:01 +49: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-005: glucose above glucoseMax triggers invalid
+00:01 +50: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-006: glucose below glucoseMin triggers invalid
+00:01 +51: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-007: missing contact duration does not trigger the contact rule
+00:01 +52: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-008: empty analyte list skips glucose rule and remains valid
+00:01 +53: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/unit/qc_classifier_test.dart: QC-009: contact rule fires before glucose rule
+00:03 +54: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/widget_test.dart: (setUpAll)
+00:03 +54: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/widget_test.dart: App boots with router
+00:04 +55: C:/Users/momex/OneDrive/Desktop/Capstone/smartTear-capstone-project/smarttear/test/widget_test.dart: (tearDownAll)
+00:04 +55: All tests passed!

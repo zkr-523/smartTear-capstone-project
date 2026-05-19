@@ -241,7 +241,7 @@ abstract final class SmartTearTheme {
         thickness: 1,
       ),
       dividerColor: SmartTearColors.divider,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: SmartTearColors.bgCard,
         surfaceTintColor: SmartTearColors.transparent,

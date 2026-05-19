@@ -5,12 +5,12 @@ import '../../domain/entities/data_package.dart';
 import '../../domain/entities/reading.dart';
 import '../../domain/repositories/reading_repository_port.dart';
 import '../../domain/services/analyte_model_port.dart';
+import '../../domain/services/tg_bg_estimator_port.dart';
 import 'package_validator.dart';
 import 'preprocessor.dart';
 import 'qc_classifier.dart';
 import 'qc_thresholds.dart';
 import 'scaler_params.dart';
-import 'tg_bg_ml_model.dart';
 
 sealed class IngestResult {
   const IngestResult();
@@ -46,7 +46,7 @@ class DataIngestor {
   final QCThresholds thresholds;
   final ScalerParams scaler;
   final ReadingRepositoryPort repository;
-  final TgBgMlModel tgBgModel;
+  final TgBgEstimatorPort tgBgModel;
 
   Future<IngestResult> ingest(
     DataPackage package,
